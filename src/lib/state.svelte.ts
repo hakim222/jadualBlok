@@ -1,7 +1,7 @@
 import { DEFAULT_CLASSES, DEFAULT_COMBINED, LEGACY_ROWS, slotMinutes, slotsFor } from './config';
 import { defaultSchoolDay, fromISO, isWeekend } from './dates';
 import { addName, assignCell, blockNames, clearSlot, emptyTimetable, eventSlots, generate, hashString, mergeSet, migrateEvents, removeName, sanitize, setBlocked, splitSet } from './scheduler';
-import { combineRows, defaultGroups, insertClassRow, migrateDay, reconcileClasses, removeClass, splitRow } from './classes';
+import { combineRows, defaultGroups, insertClassRow, migrateDay, reconcileClasses, removeClass, separateClass, splitRow } from './classes';
 import { loadSaved } from './storage';
 import { ApiError, api } from './api';
 import { sync as live } from './sync.svelte';
@@ -360,15 +360,16 @@ class Store {
     );
   }
 
-  /** Combines row c with the row below it ("K1" + "K2" → "K1/K2"). */
-  combineRows(c: number) {
-    const lower = this.rowLabels[c + 1];
+  /** Combines initial selected row c1 with row c2 (by default the row below it: c1 + 1). */
+  combineRows(c1: number, c2 = c1 + 1) {
+    if (c1 === c2 || !this.day.tt[c1] || !this.day.tt[c2]) return;
+    const otherLabel = this.rowLabels[c2];
     this.changeRows(
       () => {
         this.day.layout = true;
-        return combineRows(this.day.tt, c);
+        return combineRows(this.day.tt, c1, c2, this.classes);
       },
-      (who) => `${who} taken out of ${lower} when it was combined.`,
+      (who) => `${who} taken out of ${otherLabel} when it was combined.`,
     );
   }
 
@@ -377,7 +378,19 @@ class Store {
     this.changeRows(
       () => {
         this.day.layout = true;
-        splitRow(this.day.tt, c);
+        splitRow(this.day.tt, c, this.classes);
+        return [];
+      },
+      () => '',
+    );
+  }
+
+  /** Separates one class from a combined row into its own row. */
+  separateClass(c: number, classId: ClassId) {
+    this.changeRows(
+      () => {
+        this.day.layout = true;
+        separateClass(this.day.tt, c, classId, this.classes);
         return [];
       },
       () => '',

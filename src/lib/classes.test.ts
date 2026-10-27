@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { combineRows, defaultGroups, insertClassRow, migrateDay, reconcileClasses, removeClass, splitRow } from './classes';
+import { combineRows, defaultGroups, insertClassRow, migrateDay, reconcileClasses, removeClass, separateClass, splitRow } from './classes';
 import { DEFAULT_CLASSES, DEFAULT_COMBINED, LEGACY_ROWS } from './config';
 import { blockNames, emptyTimetable } from './scheduler';
 import type { DayData, Timetable } from './types';
@@ -85,13 +85,49 @@ describe('class rows', () => {
     expect(combineRows(tt, 0)).toEqual(['b1']); // only the lower row's after-recess teacher loses a cell
   });
 
-  test('splitting gives each class its own row; the first keeps the teachers', () => {
-    const tt = filled([['k1', 'k2', 'k3'], ['k4']]);
-    splitRow(tt, 0);
-    expect(groupsOf(tt)).toEqual([['k1'], ['k2'], ['k3'], ['k4']]);
+  test('initial selected class teacher stays, e.g. selecting K2 then K1 takes K2 teachers', () => {
+    const tt = filled([['k1'], ['k2'], ['k3']]);
+    // K1 has a0 and b0; K2 has a1 and b1.
+    // Initial selected class is K2 (row 1), combined with K1 (row 0):
+    const dropped = combineRows(tt, 1, 0, DEFAULT_CLASSES);
+    expect(groupsOf(tt)).toEqual([['k1', 'k2'], ['k3']]);
+    expect(tt[0].sets[0].t[0]).toBe('a1'); // K2's teacher stays
+    expect(tt[0].sets[1].t[0]).toBe('b1'); // K2's teacher stays
+    expect(dropped.sort()).toEqual(['a0', 'b0']); // K1's teachers replaced
+  });
+
+  test('combining any pair of rows, e.g. K1 and K12', () => {
+    const tt = filled([['k1'], ['k2'], ['k3'], ['k4'], ['k5'], ['k12']]);
+    combineRows(tt, 0, 5, DEFAULT_CLASSES);
+    expect(groupsOf(tt)).toEqual([['k1', 'k12'], ['k2'], ['k3'], ['k4'], ['k5']]);
+    expect(tt[0].sets[0].t[0]).toBe('a0'); // initial selected row keeps teacher
+  });
+
+  test('limitless combinations: combining multiple classes into one row', () => {
+    const tt = filled([['k1'], ['k2'], ['k5'], ['k12']]);
+    // Combine K1 (row 0) and K12 (row 3)
+    combineRows(tt, 0, 3, DEFAULT_CLASSES);
+    expect(groupsOf(tt)).toEqual([['k1', 'k12'], ['k2'], ['k5']]);
+    // Now combine K1/K12 (row 0) with K5 (row 2)
+    combineRows(tt, 0, 2, DEFAULT_CLASSES);
+    expect(groupsOf(tt)).toEqual([['k1', 'k5', 'k12'], ['k2']]);
+  });
+
+  test('splitting with canonical class list order', () => {
+    const tt = filled([['k1', 'k5', 'k12'], ['k2'], ['k3']]);
+    splitRow(tt, 0, DEFAULT_CLASSES);
+    expect(groupsOf(tt)).toEqual([['k1'], ['k2'], ['k3'], ['k5'], ['k12']]);
     expect(tt[0].sets[0].t[0]).toBe('a0');
-    expect(blockNames(tt[1].sets[0])).toEqual([]);
-    expect(tt[3].sets[0].t[0]).toBe('a1');
+    expect(blockNames(tt[3].sets[0])).toEqual([]);
+    expect(blockNames(tt[4].sets[0])).toEqual([]);
+  });
+
+  test('separating a single class from a 3-class combination', () => {
+    const tt = filled([['k1', 'k5', 'k12'], ['k2'], ['k3']]);
+    separateClass(tt, 0, 'k5', DEFAULT_CLASSES);
+    expect(groupsOf(tt)).toEqual([['k1', 'k12'], ['k2'], ['k3'], ['k5']]);
+    expect(tt[0].sets[0].t[0]).toBe('a0'); // remaining combined classes keep teachers
+    expect(blockNames(tt[3].sets[0])).toEqual([]); // separated class starts empty
   });
 });
 
