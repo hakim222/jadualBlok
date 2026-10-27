@@ -32,7 +32,7 @@ The app fills the timetable automatically under the school's own rules, and the 
 ## Capabilities and Constraints
 
 - School days only (Mon–Fri). Friday has shorter slots after recess (9.30–10.45, 10.45–12.00 instead of 9.30–11.00, 11.00–12.30). Slots and the default combined classes live in `src/lib/config.ts`.
-- The class list is shared and edited like the teacher list. Each day the coordinator ticks which classes are taught (an unticked class has no row) and can combine neighbouring rows into one ("K1/K2", which shares one set of teachers) or split them. New days start with the default combinations.
+- The class list is shared and edited like the teacher list. Each day the coordinator ticks which classes are taught (an unticked class has no row) and can combine rows (e.g. "K1/K2", "K1/K12", or any pair and limitless combination of classes, sharing one set of teachers) or split them. New days start with the default combinations.
 - The teacher and class lists are stored on the server (Cloudflare D1 behind a Worker). Daily availability and timetables are stored on the server too (a Durable Object) and shared live with every open device; the browser keeps a copy for a fast start.
 - Without a connection, the timetable is shown read-only and editing pauses until the app reconnects.
 - If the API can't be reached, the app shows the last saved list and pauses editing.

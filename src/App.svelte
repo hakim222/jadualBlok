@@ -164,7 +164,12 @@
     <div class="scroll">
       <Timetable locked={!store.editable} onpick={(c, set, pos) => (picking = { c, set, pos })} onclass={(c) => (classRow = c)} onevent={(s) => (eventSlot = s)} />
     </div>
-    <p class="hint">Changes show live on every device. Tap a cell to change the teacher, swap, or merge/split the 2 slots before or after recess. Use a cell's Add event tab to block that slot for every class (e.g. assembly). Tap a class name to combine it with the row above or below, or split it. Changing availability doesn't rebuild the day; press Generate when you're ready.</p>
+    <ul class="hints">
+      <li><b>Tap a cell</b> to assign or swap teachers, merge slots, or add school events.</li>
+      <li><b>Tap a class name</b> to combine with other classes or split rows.</li>
+      <li><b>Regenerate</b> fills the timetable for available teachers (replaces manual edits).</li>
+      <li class="sync-hint">Changes sync live across all devices.</li>
+    </ul>
 
     {#if store.available.length}
       <details class="workload">
@@ -340,10 +345,24 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  .hint {
+  .hints {
     margin: 8px 0 16px;
+    padding-left: 20px;
     font-size: 12.5px;
     color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .hints li + li {
+    margin-top: 4px;
+  }
+
+  .hints .sync-hint {
+    list-style-type: none;
+    margin-left: -20px;
+    margin-top: 6px;
+    font-style: italic;
+    opacity: 0.85;
   }
 
   .workload {

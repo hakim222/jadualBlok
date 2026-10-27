@@ -101,30 +101,56 @@ export function reconcileClasses(d: DayData, classes: Named[]): boolean {
 }
 
 /**
- * Combines row c with row c + 1 into one row. On each side of recess the upper row's teachers
- * stay; the lower row's are used only where the upper row has none. Returns the teachers who lost
- * their cells.
+ * Combines the initially selected row (c1) with row c2 (by default c1 + 1) into one row.
+ * On each side of recess the initial selected row's (c1) teachers stay; the other row's (c2)
+ * are used only where the initial row has none. Classes are kept in class-list order
+ * when `classes` is provided. Returns the teachers who lost their cells.
  */
-export function combineRows(tt: Timetable, c: number): TeacherId[] {
-  const a = tt[c];
-  const b = tt[c + 1];
-  if (!a || !b) return [];
+export function combineRows(tt: Timetable, c1: number, c2 = c1 + 1, classes?: Named[]): TeacherId[] {
+  if (c1 === c2 || !tt[c1] || !tt[c2]) return [];
+  const target = tt[c1];
+  const other = tt[c2];
   const dropped: TeacherId[] = [];
   for (const set of [0, 1] as const) {
-    if (blockNames(a.sets[set]).length) dropped.push(...blockNames(b.sets[set]));
-    else a.sets[set] = b.sets[set];
+    if (blockNames(target.sets[set]).length) dropped.push(...blockNames(other.sets[set]));
+    else target.sets[set] = other.sets[set];
   }
-  a.classes = [...a.classes, ...b.classes];
-  tt.splice(c + 1, 1);
-  const kept = new Set(a.sets.flatMap(blockNames));
+  target.classes = [...new Set([...target.classes, ...other.classes])];
+  if (classes) {
+    const pos = order(classes);
+    target.classes.sort((x, y) => (pos.get(x) ?? Infinity) - (pos.get(y) ?? Infinity));
+  }
+  const upper = Math.min(c1, c2);
+  const lower = Math.max(c1, c2);
+  tt[upper] = target;
+  tt.splice(lower, 1);
+  const kept = new Set(target.sets.flatMap(blockNames));
   return [...new Set(dropped)].filter((id) => !kept.has(id));
 }
 
 /** Splits a combined row into one row per class. The first class keeps the teachers; the others start empty. */
-export function splitRow(tt: Timetable, c: number) {
+export function splitRow(tt: Timetable, c: number, classes?: Named[]) {
   const row = tt[c];
   if (!row || row.classes.length < 2) return;
   const [first, ...rest] = row.classes;
   row.classes = [first];
-  tt.splice(c + 1, 0, ...rest.map((id): Row => ({ classes: [id], sets: [emptyBlock(), emptyBlock()] })));
+  if (classes) {
+    for (const id of rest) {
+      insertClassRow(tt, id, classes);
+    }
+  } else {
+    tt.splice(c + 1, 0, ...rest.map((id): Row => ({ classes: [id], sets: [emptyBlock(), emptyBlock()] })));
+  }
+}
+
+/** Separates one class from a combined row into its own row (no teachers). */
+export function separateClass(tt: Timetable, c: number, id: ClassId, classes?: Named[]) {
+  const row = tt[c];
+  if (!row || row.classes.length < 2 || !row.classes.includes(id)) return;
+  row.classes = row.classes.filter((x) => x !== id);
+  if (classes) {
+    insertClassRow(tt, id, classes);
+  } else {
+    tt.splice(c + 1, 0, { classes: [id], sets: [emptyBlock(), emptyBlock()] });
+  }
 }
