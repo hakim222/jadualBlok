@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Production build
+dist/
+
+# Cloudflare Wrangler & Local environment
+.wrangler/
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Tool caches & local configs
+.impeccable/
+*.local.json
+
+# Binaries and executable tools
+*.exe
+
+# OS files
+.DS_Store
+Thumbs.db

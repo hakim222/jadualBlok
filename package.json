@@ -1,0 +1,27 @@
+{
+  "name": "jadualblok",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:api": "wrangler dev",
+    "build": "vite build",
+    "preview": "vite build && wrangler dev",
+    "deploy": "vite build && wrangler deploy",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "modern-screenshot": "^4.7.0"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@tsconfig/svelte": "^5.0.8",
+    "svelte": "^5.57.2",
+    "svelte-check": "^4.7.6",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.4",
+    "wrangler": "^4.153.0"
+  }
+}

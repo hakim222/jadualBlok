@@ -1,0 +1,196 @@
+/* Light tokens. `.force-light` re-applies them so the exported image is always light. */
+:root,
+.force-light {
+  --bg: #f4f6fb;
+  --surface: #ffffff;
+  --surface-2: #f1f4f9;
+  --text: #131a2a;
+  --muted: #5d6779;
+  --border: #e1e6ef;
+  --accent: #2563eb;
+  --accent-text: #ffffff;
+  --accent-soft: #e6eeff;
+  --warn-bg: #fff4e0;
+  --warn-text: #8a4b00;
+  --warn-border: #f5c77e;
+  --danger: #c62828;
+  --recess-bg: repeating-linear-gradient(135deg, #eef1f6 0 8px, #e6eaf1 8px 16px);
+  --chip-s: 85%;
+  --chip-l: 93%;
+  --chip-ts: 55%;
+  --chip-tl: 24%;
+  --chip-bs: 60%;
+  --chip-bl: 82%;
+  --shadow: 0 1px 2px rgb(16 24 40 / 0.05), 0 1px 3px rgb(16 24 40 / 0.06);
+  --shadow-dialog: 0 20px 50px rgb(0 0 0 / 0.25);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117;
+    --surface: #161b24;
+    --surface-2: #1d2430;
+    --text: #e7ebf3;
+    --muted: #9aa4b5;
+    --border: #2a3240;
+    --accent: #5b8cff;
+    --accent-text: #0b1020;
+    --accent-soft: #1d2a48;
+    --warn-bg: #3a2a10;
+    --warn-text: #ffcf87;
+    --warn-border: #6b4a14;
+    --danger: #ff6b6b;
+    --recess-bg: repeating-linear-gradient(135deg, #1b212c 0 8px, #202734 8px 16px);
+    --chip-s: 35%;
+    --chip-l: 23%;
+    --chip-ts: 75%;
+    --chip-tl: 85%;
+    --chip-bs: 30%;
+    --chip-bl: 33%;
+    --shadow: none;
+    color-scheme: dark;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Nothing on the page should scroll sideways (the timetable scrolls inside its own box); a stray
+   overflow would also widen the phone's layout viewport and every 100vw-sized thing with it.
+   On #app, not body: body's overflow is handed to the viewport instead of clipping. Fixed and
+   top-layer elements (toasts, dialogs, the export stage) are not clipped by it. */
+#app {
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.2;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled {
+  cursor: not-allowed;
+}
+
+.btn:disabled,
+.input:disabled {
+  opacity: 0.5;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-weight: 550;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.btn.primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+  background: var(--accent);
+}
+
+.btn.ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn.small {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+.btn svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.input {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  min-width: 0;
+}
+
+.input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  border-color: transparent;
+}
+
+/* Teacher colour, driven by --h on the element. */
+.tc {
+  background: hsl(var(--h) var(--chip-s) var(--chip-l));
+  color: hsl(var(--h) var(--chip-ts) var(--chip-tl));
+  border: 1px solid hsl(var(--h) var(--chip-bs) var(--chip-bl));
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
